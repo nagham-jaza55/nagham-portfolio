@@ -5,13 +5,15 @@
   "scripts": {
     "dev": "next dev --hostname 0.0.0.0",
     "build": "next build",
-    "start": "next start --hostname 0.0.0.0",
+    "start": "serve out --listen 3000",
     "typecheck": "tsc --noEmit",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "build:pages": "NEXT_PUBLIC_BASE_PATH=/nagham-portfolio next build",
+    "deploy:pages": "bash scripts/deploy-pages.sh"
   },
   "dependencies": {
-    "@fontsource-variable/manrope": "^5.2.8",
     "@fontsource-variable/jetbrains-mono": "^5.2.8",
+    "@fontsource-variable/manrope": "^5.2.8",
     "framer-motion": "^12.23.24",
     "lucide-react": "^0.468.0",
     "next": "^16.0.0",
@@ -25,6 +27,7 @@
     "@types/react-dom": "^19.0.0",
     "eslint": "^9.0.0",
     "eslint-config-next": "^16.0.0",
+    "serve": "^14.2.6",
     "tailwindcss": "^4.1.0",
     "typescript": "^5.7.0"
   },

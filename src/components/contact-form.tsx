@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowUpRight, CheckCircle2, LoaderCircle } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 import { useId, useRef, useState, type FormEvent } from "react";
 import { profile } from "@/lib/portfolio";
 
@@ -13,7 +13,7 @@ type FormValues = {
 type FieldName = "name" | "email" | "message";
 type FieldErrors = Partial<Record<FieldName, string>>;
 type FormStatus = {
-  kind: "success" | "error" | "fallback";
+  kind: "error" | "fallback";
   message: string;
 } | null;
 
@@ -53,7 +53,6 @@ export function ContactForm() {
   const [values, setValues] = useState<FormValues>(emptyValues);
   const [errors, setErrors] = useState<FieldErrors>({});
   const [status, setStatus] = useState<FormStatus>(null);
-  const [pending, setPending] = useState(false);
 
   function updateField(field: keyof FormValues, value: string) {
     setValues((current) => ({ ...current, [field]: value }));
@@ -62,9 +61,8 @@ export function ContactForm() {
     setStatus(null);
   }
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (pending) return;
 
     const nextErrors = validate(values);
     setErrors(nextErrors);
@@ -80,53 +78,12 @@ export function ContactForm() {
       return;
     }
 
-    setPending(true);
-    try {
-      const response = await fetch("/api/contact", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(values),
-        signal: AbortSignal.timeout(15000),
-      });
-      const result = (await response.json()) as {
-        success?: boolean;
-        error?: string;
-        fieldErrors?: FieldErrors;
-      };
-
-      if (!response.ok || !result.success) {
-        if (response.status === 503 && profile.email) {
-          setStatus({
-            kind: "fallback",
-            message:
-              "Your message is ready. Open your email app below to review and send it.",
-          });
-          return;
-        }
-        if (result.fieldErrors) setErrors(result.fieldErrors);
-        setStatus({
-          kind: "error",
-          message:
-            result.error || "Your message could not be sent. Please try again.",
-        });
-        return;
-      }
-
-      setValues(emptyValues);
-      setStatus({
-        kind: "success",
-        message:
-          "Message sent. Thanks for reaching out — I’ll be in touch soon.",
-      });
-    } catch {
-      setStatus({
-        kind: "error",
-        message:
-          "The connection timed out or is unavailable. Please try again later.",
-      });
-    } finally {
-      setPending(false);
-    }
+    if (values.website) return;
+    setStatus({
+      kind: "fallback",
+      message:
+        "Your message is ready. Open your email app below to review and send it.",
+    });
   }
 
   return (
@@ -136,7 +93,6 @@ export function ContactForm() {
       onSubmit={handleSubmit}
       noValidate
       aria-label="Send a message"
-      aria-busy={pending}
     >
       <div className="form-row">
         <div className="form-field">
@@ -156,7 +112,6 @@ export function ContactForm() {
             onChange={(event) => updateField("name", event.target.value)}
             aria-invalid={Boolean(errors.name)}
             aria-describedby={errors.name ? `${formId}-name-error` : undefined}
-            disabled={pending}
           />
           {errors.name && (
             <p id={`${formId}-name-error`} className="form-error">
@@ -183,7 +138,6 @@ export function ContactForm() {
             aria-describedby={
               errors.email ? `${formId}-email-error` : undefined
             }
-            disabled={pending}
           />
           {errors.email && (
             <p id={`${formId}-email-error`} className="form-error">
@@ -209,7 +163,6 @@ export function ContactForm() {
           onChange={(event) => updateField("message", event.target.value)}
           aria-invalid={Boolean(errors.message)}
           aria-describedby={`${formId}-message-hint${errors.message ? ` ${formId}-message-error` : ""}`}
-          disabled={pending}
         />
         <p id={`${formId}-message-hint`} className="form-hint">
           20–5,000 characters. All fields are required.
@@ -231,25 +184,12 @@ export function ContactForm() {
           onChange={(event) => updateField("website", event.target.value)}
         />
       </div>
-      <button
-        className="button button-primary form-submit"
-        type="submit"
-        disabled={pending}
-      >
-        {pending ? (
-          <>
-            Sending message{" "}
-            <LoaderCircle
-              size={17}
-              className="animate-spin"
-              aria-hidden="true"
-            />
-          </>
-        ) : (
-          <>
-            Send message <ArrowUpRight size={18} aria-hidden="true" />
-          </>
-        )}
+      <p className="form-hint" style={{ marginBottom: 14 }}>
+        Your message will open in your email app, where you can review and send
+        it.
+      </p>
+      <button className="button button-primary form-submit" type="submit">
+        Prepare email <ArrowUpRight size={18} aria-hidden="true" />
       </button>
       <div aria-live="polite" aria-atomic="true">
         {status && (
@@ -257,14 +197,11 @@ export function ContactForm() {
             className={`form-status form-status-${status.kind}`}
             role={status.kind === "error" ? "alert" : "status"}
           >
-            {status.kind === "success" && (
-              <CheckCircle2 size={17} aria-hidden="true" />
-            )}
             {status.message}
           </p>
         )}
       </div>
-      {status && status.kind !== "success" && profile.email && (
+      {status && profile.email && (
         <a
           className="email-fallback text-link"
           href={`mailto:${profile.email}?subject=${encodeURIComponent(`Portfolio inquiry from ${values.name.trim()}`)}&body=${encodeURIComponent(`Name: ${values.name.trim()}\nReply to: ${values.email.trim()}\n\n${values.message.trim()}`)}`}

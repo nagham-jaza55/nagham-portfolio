@@ -30,21 +30,9 @@ Nagham Jaza's GitHub profile is linked at [github.com/nagham-jaza55](https://git
 
 Project demos run in the browser with sample state. Their architecture notes describe proposed systems; the portfolio does not implement those projects' production backends. Supply a project's `demoUrl` and `githubUrl` to display external demo and source links.
 
-## Enable contact delivery
+## Contact
 
-The form validates input in the browser and again in `src/app/api/contact/route.ts`. Email is sent server-side through Resend.
-
-Copy `.env.example` to `.env.local` and set:
-
-| Variable             | Purpose                                        |
-| -------------------- | ---------------------------------------------- |
-| `RESEND_API_KEY`     | Resend API key with permission to send email.  |
-| `CONTACT_EMAIL`      | Inbox that receives portfolio messages.        |
-| `CONTACT_FROM_EMAIL` | Sender address on a domain verified in Resend. |
-
-Restart the development server after changing environment variables. Update `profile.email` separately if you change the public email address.
-
-Email delivery is unavailable until the server environment is configured. A public contact form additionally requires deployment with these variables set in the hosting provider's environment settings. The API reports a configuration or delivery error instead of claiming a message was sent. The form then offers a prefilled email-app link; the visitor reviews and sends that message in their own email client. Keep keys on the server; do not use a `NEXT_PUBLIC_` prefix or commit secret values. Local `.env` files are ignored by Git.
+The GitHub Pages version is fully static. The form validates name, email, and message, then provides a prefilled email-app link addressed to `naghamjaza5@gmail.com`. The visitor reviews and sends the message in their own email client. No server, API key, or automatic email delivery is required. Update `profile.email` in `src/lib/portfolio.ts` to change the recipient.
 
 ## Structure
 
@@ -52,7 +40,6 @@ Email delivery is unavailable until the server environment is configured. A publ
 src/app/page.tsx                 Page entry point
 src/app/layout.tsx               Metadata and bundled fonts
 src/app/globals.css              Theme, layout, and responsive styles
-src/app/api/contact/route.ts     Validated server-side email endpoint
 src/components/portfolio.tsx     Sections, navigation, filters, and modal
 src/components/project-preview.tsx  Interactive concept previews
 src/components/project-preview.css  Preview-specific styles
@@ -60,10 +47,21 @@ src/components/contact-form.tsx Accessible form and submission states
 src/lib/portfolio.ts             Editable profile, projects, and experience
 ```
 
-## Deploy
+## GitHub Pages deployment
 
-For Vercel, import this repository, select the Next.js framework preset, use Node.js 24, and add the three contact variables to the appropriate deployment environment. Vercel runs the production build automatically.
+Website: https://nagham-jaza55.github.io/nagham-portfolio/
 
-For a Node.js host, install dependencies with `npm ci`, run `npm run build`, then run `npm start` behind your host's HTTPS proxy. Configure the same server environment variables and keep the process running through the hosting platform. A static-only export cannot serve the contact API.
+Source lives on `main`; compiled static files live on `gh-pages`. In repository Settings → Pages, use **Deploy from a branch**, choose **gh-pages**, and select **/ (root)**. The `.nojekyll` file ensures Next.js assets are served unchanged.
 
-This repository is prepared for deployment; it has not been published automatically.
+After changing the source, commit and push it to `main`, then run:
+
+```sh
+npm ci
+npm run lint
+npm run typecheck
+npm run deploy:pages
+```
+
+The deployment script builds with the `/nagham-portfolio` base path and pushes only generated files to `gh-pages`, without force-pushing. It requires Git push access and a configured Git author. GitHub then publishes the branch; progress is visible under repository Actions and Settings → Pages.
+
+For a local root-path production preview, run `npm run build` followed by `npm start`. For GitHub Pages output only, run `npm run build:pages`; deploy the resulting `out/` directory at `/nagham-portfolio/`. `npm start` serves root-path builds; Pages builds need that URL prefix when previewed.
