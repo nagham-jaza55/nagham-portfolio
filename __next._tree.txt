@@ -1,0 +1,5 @@
+:HL["/nagham-portfolio/_next/static/chunks/2zmtrzai5ea5t.css","style"]
+:HC["/",""]
+:HL["/nagham-portfolio/_next/static/chunks/0vqrtchm4qqex.css","style"]
+1:[["children",{"s":"__PAGE__","h":160}]]
+0:{"b":"f0CI0UTpT-lcJhva8fltB","t":{"t":{"s":"","h":80,"c":"$Q1"}}}
